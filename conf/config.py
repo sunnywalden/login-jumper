@@ -4,7 +4,7 @@
 
 # [Server]
 jumper_host = '127.0.0.1'
-jumper_port = 60022
+jumper_port = 22
 
 # [Session]
 
