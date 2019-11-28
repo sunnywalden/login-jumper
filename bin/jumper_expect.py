@@ -125,10 +125,16 @@ def jumper_login():
     jumper_infos = jumper_info()
     host = jumper_infos["host"]
     port = jumper_infos["port"]
-    username = os.getenv("jumper_username") if os.getenv("jumper_username") \
-        else input('jumper server loging username: ')
-    password = os.getenv('jumper_password') if os.getenv('jumper_password') \
-        else getpass.getpass('jumper account loging password: ')
+    if os.getenv("jumper_username"):
+        username = os.getenv("jumper_username")
+    else:
+        username = input('jumper server loging username: ')
+        os.environ['jumper_username'] = username
+    if os.getenv('jumper_password'):
+        password = os.getenv('jumper_password')
+    else:
+        password = getpass.getpass('jumper account loging password: ')
+        os.environ['jumper_password'] = password
 
     # set environment vars
     os.environ['LANG'] = 'en_US.utf8'
