@@ -7,12 +7,12 @@ import os
 import sys
 import sentry_sdk
 
-BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
-sys.path.append(BASE_DIR)
-
 from bin.jumper_expect import jumper_login
 from bin.jumper_expect import server_login
 from utils.get_logger import Logger
+
+# BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
+# sys.path.append(BASE_DIR)
 
 
 def main():
