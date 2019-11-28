@@ -1,0 +1,7 @@
+env/
+logs/
+.idea/
+conf
+*.pyc
+*/*.pyc
+!.gitfile
