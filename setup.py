@@ -11,7 +11,7 @@ setuptools.setup(
     description="Logging ecs automatic via jumper server",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sunnywalden/login_jump",
+    url="https://github.com/sunnywalden/login_jumper",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
