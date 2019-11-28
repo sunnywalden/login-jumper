@@ -1,3 +1,4 @@
 pycrypto
 paramiko
 pexpect
+sentry-sdk

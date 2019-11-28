@@ -5,6 +5,7 @@
 import argparse
 import os
 import sys
+import sentry_sdk
 
 BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(BASE_DIR)
@@ -17,6 +18,8 @@ from utils.get_logger import Logger
 def main():
     log = Logger()
     logger = log.logger_generate(__name__)
+
+    sentry_sdk.init("https://REDACTED@sentry.example/0")
 
     parser = argparse.ArgumentParser(usage='python main.py [-H [host]]',
                                      description='Login server via jumper')

@@ -4,7 +4,7 @@
 [![version](https://img.shields.io/badge/python-3.7.5-blue.svg)](https://www.python.org/downloads/release/python-375/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c735378085b404caf09a441238ad034)](https://www.codacy.com/manual/sunnywalden/login-jumper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sunnywalden/login-jumper&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://travis-ci.org/sunnywalden/login-jumper.svg?branch=master)](https://travis-ci.org/sunnywalden/login-jumper)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/sunnywalden/login-jumper?style=for-the-badge)
+
 
 ## 部署
 
