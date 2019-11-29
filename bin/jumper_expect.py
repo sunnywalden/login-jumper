@@ -10,6 +10,7 @@ import pexpect
 import signal
 from sentry_sdk import capture_exception
 
+from conf import config
 from utils.get_logger import Logger
 from utils.jumper_info import jumper_info
 from utils.terminal_size import get_terminal_size
@@ -121,21 +122,31 @@ def jumper_login():
     jumper_infos = jumper_info()
     host = jumper_infos["host"]
     port = jumper_infos["port"]
+    system_profile = config.system_profile
+
+    os.system('source ' + system_profile)
     username = os.getenv("jumper_username")
+    lang = os.getenv("LANG")
+    lc_type = os.getenv("LC_CTYPE")
+
     if not username:
         if version < (3, 0):
             username = raw_input('jumper server loging username: ')
         else:
             username = input('jumper server loging username: ')
         os.environ['jumper_username'] = username
-    password = os.getenv('jumper_password')
-    if not password:
-        password = getpass.getpass('jumper account loging password: ')
-        os.environ['jumper_password'] = password
+        with open(system_profile, 'a+') as f:
+            f.writelines(('\n' + 'export jumper_username=' + username + '\n'))
 
     # set environment vars
-    os.environ['LANG'] = 'en_US.utf8'
-    os.environ['LC_CTYPE'] = 'en_US.utf8'
+    if not lang:
+        os.environ['LANG'] = 'en_US.utf8'
+        with open(system_profile, 'a+') as f:
+            f.writelines(('\n' + 'export LANG=' + lang + '\n'))
+    if not lc_type:
+        os.environ['LC_CTYPE'] = 'en_US.utf8'
+        with open(system_profile, 'a+') as f:
+            f.writelines(('\n' + 'export LC_CTYPE=' + lc_type + '\n'))
 
     command = 'ssh -o StrictHostKeyChecking=no %(user)s@%(host)s -p %(port)s' \
               %{"user": username, "host": host, "port": str(port)}
