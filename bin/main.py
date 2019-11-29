@@ -25,6 +25,7 @@ def main():
 
     if roll_bar:
         rollbar.init(roll_bar)
+        rollbar.report_message('Rollbar is configured correctly')
     if sentry_id:
         sentry_sdk.init(sentry_id)
 
