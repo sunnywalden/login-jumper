@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 import sentry_sdk
+import rollbar
 
 BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(BASE_DIR)
@@ -19,9 +20,11 @@ from utils import config
 def main():
     logger = logger_generate(__name__)
 
-    # aliyun setting
     sentry_id = config.get_config('Sentry', 'sentry_id')
+    roll_bar = config.get_config('App', 'roll_bar')
 
+    if roll_bar:
+        rollbar.init(roll_bar)
     if sentry_id:
         sentry_sdk.init(sentry_id)
 
