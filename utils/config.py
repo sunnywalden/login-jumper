@@ -3,9 +3,13 @@
 # 配置管理
 
 import configparser as config_parser
+import os
 
 
 def get_config(section, option):
+    if os.getenv(option):
+        return os.getenv(option)
+
     conf = config_parser.RawConfigParser()
     file_path = 'conf/config.ini'
 
