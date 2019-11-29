@@ -10,7 +10,7 @@ import signal
 from sentry_sdk import capture_exception
 
 from utils import config
-from utils.get_logger import Logger
+from utils.get_logger import logger_generate
 from utils.jumper_info import jumper_info
 from utils.terminal_size import get_terminal_size
 
@@ -22,20 +22,19 @@ if version < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-log = Logger()
-logger = log.logger_generate(__name__)
+logger = logger_generate(__name__)
 
 
-def search_string(server):
-    if re.match(r'^\d+$', server):
-        search_str = ':' + server
+def search_string(search_strings):
+    if re.match(r'^\d+$', search_strings):
+        search_str_res = ':' + search_strings
     else:
-        search_str = '/' + server
-    return search_str
+        search_str_res = '/' + search_strings
+    return search_str_res
 
 
-def child_timeout(child):
-    logger.info("Debug console info: %s" % child.before)
+def child_timeout(child_timout):
+    logger.info("Debug console info: %s" % child_timout.before)
     logger.info("Timeout while searching host!")
     logger.info("Loging out jumper!")
     logger.info('Left interactive mode.')
@@ -245,9 +244,9 @@ def server_match():
                     break
 
 
-def server_login(login_child, server):
+def server_login(login_child, server_s):
     global search_str
-    search_str = search_string(server)
+    search_str = search_string(server_s)
 
     global filter_buf, filter_buf_size, output_buf, output_buf_size
 
@@ -260,20 +259,20 @@ def server_login(login_child, server):
     match_server, server_exit, login_status, jumper_exit, root_user, send_over, login_user = \
         False, False, False, False, False, False, 0
 
-    server = search_str[1:]
+    server_info = search_str[1:]
     end_str = '\[1B\[1024D\[K'
 
     global search_prompt, search_prompt_name, search_prompt_ip, \
         login_prompt, user_prompt, root_prompt
 
-    search_prompt = re.compile('\d+: .+' + server + '.+' + end_str)
-    search_prompt_name = re.compile('\d+: ' + server + '.+' + '\d+.\d+.\d+.\d+:\d+' + 'ssh' + '.+' + end_str)
-    search_prompt_ip = re.compile('\d+: .+' + server + ':\d+' + 'ssh' + '.+' + end_str)
+    search_prompt = re.compile('\d+: .+' + server_info + '.+' + end_str)
+    search_prompt_name = re.compile('\d+: ' + server_info + '.+' + '\d+.\d+.\d+.\d+:\d+' + 'ssh' + '.+' + end_str)
+    search_prompt_ip = re.compile('\d+: .+' + server_info + ':\d+' + 'ssh' + '.+' + end_str)
     login_prompt = re.compile('Welcome to Alibaba Cloud Elastic Compute Service !')
     user_prompt = re.compile('\[\w+@\w+ ~\]\$')
     root_prompt = re.compile('\[\w+@\w+ \w+\]#')
 
-    logger.info("Start search for host: %s" % server)
+    logger.info("Start search for host: %s" % server_info)
 
     global server_dict
     server_dict = {}

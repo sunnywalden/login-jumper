@@ -4,14 +4,13 @@
 
 import paramiko
 
-from utils.get_logger import Logger
+from utils.get_logger import logger_generate
 from utils.jumper_info import jumper_info
 
 
 class JumperLogin:
     def __init__(self):
-        log = Logger()
-        self.logger = log.logger_generate(__name__)
+        self.logger = logger_generate(__name__)
         self.login_info = jumper_info()
         self.ssh = paramiko.SSHClient()
 
