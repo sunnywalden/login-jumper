@@ -136,17 +136,22 @@ def jumper_login():
             username = input('jumper server loging username: ')
         os.environ['jumper_username'] = username
         with open(system_profile, 'a+') as f:
-            f.writelines(('\n' + 'export jumper_username=' + username + '\n'))
+            if username not in f.readlines():
+                f.writelines(('\n' + 'export jumper_username=' + username + '\n'))
 
     # set environment vars
     if not lang:
-        os.environ['LANG'] = 'en_US.utf8'
+        lang = 'en_US.utf8'
+        os.environ['LANG'] = lang
         with open(system_profile, 'a+') as f:
-            f.writelines(('\n' + 'export LANG=' + lang + '\n'))
+            if lang not in f.readlines():
+                f.writelines(('\n' + 'export LANG=' + lang + '\n'))
     if not lc_type:
-        os.environ['LC_CTYPE'] = 'en_US.utf8'
+        lc_type = 'en_US.utf8'
+        os.environ['LC_CTYPE'] = lc_type
         with open(system_profile, 'a+') as f:
-            f.writelines(('\n' + 'export LC_CTYPE=' + lc_type + '\n'))
+            if lc_type not in f.readlines():
+                f.writelines(('\n' + 'export LC_CTYPE=' + lc_type + '\n'))
 
     command = 'ssh -o StrictHostKeyChecking=no %(user)s@%(host)s -p %(port)s' \
               %{"user": username, "host": host, "port": str(port)}
