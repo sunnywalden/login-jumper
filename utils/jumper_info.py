@@ -3,7 +3,7 @@
 # author: sunnywalden@gmail.com
 
 from utils.get_logger import Logger
-from conf import config
+from utils import config
 
 log = Logger()
 logger = log.logger_generate(__name__)
@@ -11,9 +11,9 @@ logger = log.logger_generate(__name__)
 
 def jumper_info():
     jumper_infos = {
-            "host": config.jumper_host,
-            "port": config.jumper_port,
-            "interval": config.alive_interval
+            "host": config.get_config('Server', 'jumper_host'),
+            "port": config.get_config('Server', 'jumper_port'),
+            "interval": config.get_config('Session', 'alive_interval')
         }
 
     return jumper_infos
