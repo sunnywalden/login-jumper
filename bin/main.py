@@ -23,6 +23,9 @@ def main():
     # aliyun setting
     sentry_id = config.get_config('Sentry', 'sentry_id')
 
+    version = sys.version_info
+    v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro)
+
     if sentry_id:
         sentry_sdk.init(sentry_id)
 
