@@ -43,9 +43,8 @@ def child_timeout(child):
 
 
 def filter_output(s):
-    global child, bash_prompt, output_buf, output_buf_size, \
-        match_server,search_str,server_exit, login_status, login_prompt,\
-        user_prompt, root_prompt, root_user, login_user, send_over
+    global child, output_buf, search_str, server_exit, login_status, login_prompt, \
+         user_prompt, root_user, login_user, output_buf_size
 
     root_str = ']#'
     jumper_str = 'USMShell'
@@ -57,21 +56,19 @@ def filter_output(s):
     server = search_str[1:]
     if login_prompt.search(output_buf):
         if match_server:
-            if user_prompt.search(output_buf):
-                if not login_status:
-                    logger.info("Login server %s success!" % server)
-                    login_user = 1
-                    login_status = True
+            if user_prompt.search(output_buf) and not login_status:
+                logger.info("Login server %s success!" % server)
+                login_user = 1
+                login_status = True
             if root_str in output_buf:
                 if login_user < 2 and not server_exit:
                     logger.info("Login server as root!")
                     login_user = 2
                     root_user = True
-                if jumper_str in output_buf:
-                    if not server_exit:
-                        logger.info("Exit from server success!")
-                        server_exit = True
-                        child.sendline("ls")
+                if jumper_str in output_buf and not server_exit:
+                    logger.info("Exit from server success!")
+                    server_exit = True
+                    child.sendline("ls")
         else:
             logger.error("No server matched found")
             child.sendline(':q')
@@ -80,38 +77,36 @@ def filter_output(s):
 
 
 def filter_input(s):
-        global child, match_server, user_prompt, filter_buf,\
-            filter_buf_size, search_str, server_exit, jumper_exit,\
-            root_user, login_status, login_user
+    global child, user_prompt, filter_buf, filter_buf_size, search_str, server_exit, \
+         jumper_exit, root_user, login_status, login_user
 
-        exit_str = 'exit'
-        quit_str = ':q'
-        if version < (3, 0):
-            filter_buf += s
+    exit_str = 'exit'
+    quit_str = ':q'
+    if version < (3, 0):
+        filter_buf += s
+    else:
+        filter_buf += s.decode('utf-8')
+    filter_buf = filter_buf[-filter_buf_size:]
+
+    if exit_str in filter_buf:
+        if login_user == 1 and login_status:
+            if not server_exit:
+                logger.info("Start exit from server!")
+                logger.info("Logout server success!")
+                server_exit = True
         else:
-            filter_buf += s.decode('utf-8')
-        filter_buf = filter_buf[-filter_buf_size:]
+            if root_user and login_user == 2:
+                logger.info("Logout as root to normal!")
+                root_user = False
+    if (exit_str in filter_buf and server_exit) or quit_str in filter_buf and not jumper_exit:
+        logger.info("Logout jumper success!")
+        logger.info('########################################')
+        jumper_exit = True
 
-        if exit_str in filter_buf:
-            if login_user == 1 and login_status:
-                if not server_exit:
-                    logger.info("Start exit from server!")
-                    logger.info("Logout server success!")
-                    server_exit = True
-            else:
-                if root_user and login_user == 2:
-                    logger.info("Logout as root to normal!")
-                    root_user = False
-        if (exit_str in filter_buf and server_exit) or quit_str in filter_buf:
-            if not jumper_exit:
-                logger.info("Logout jumper success!")
-                logger.info('########################################')
-                jumper_exit = True
-
-        return s
+    return s
 
 
-def sigwinch_passthrough(sig, data):
+def sigwinch_pass_through(sig, data):
     global child
     if not child.closed:
         child.setwinsize(*get_terminal_size())
@@ -154,11 +149,11 @@ def jumper_login():
                 f.writelines(('\n' + 'export LC_CTYPE=' + lc_type + '\n'))
 
     command = 'ssh -o StrictHostKeyChecking=no %(user)s@%(host)s -p %(port)s' \
-              %{"user": username, "host": host, "port": str(port)}
+              % {"user": username, "host": host, "port": str(port)}
     global child
     child = pexpect.spawn(command, maxread=1024 * 1024 * 1024, timeout=30)
     child.setwinsize(*get_terminal_size())
-    signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+    signal.signal(signal.SIGWINCH, sigwinch_pass_through)
     logger.info('########################################')
     logger.info('Loging jumper!')
     index1 = child.expect('usmshell')
@@ -171,8 +166,7 @@ def jumper_login():
 
 
 def search_server():
-    global child, match_server, server_dict, search_str,\
-        search_prompt_name, search_prompt_ip, search_prompt
+    global child, match_server, server_dict, search_str, server, server_info_list
     server = search_str[1:]
     search_str = '\d+ .+' + server + '.+' + '\r\n'
 
@@ -196,77 +190,82 @@ def search_server():
 
         logger.debug("Debug servers list:%s" % server_info_list)
 
-        if version < (3, 0):
-            server = server
-
-        else:
+        if not version < (3, 0):
             server = server.encode('utf-8')
+        server_match()
 
-        for server_info in server_info_list:
-            if server in server_info:
-                server_list = server_info.split()
-                logger.debug("Debug server info: %s %s" % (server_info, server_list))
-
-                if version < (3, 0):
-                    ssh_str = 'ssh'
-                    ssh_index = server_list.index(ssh_str)
-                    try:
-                        server_dict["id"] = server_list[0].split(":")[0]
-                        server_dict["name"] = server_list[1].split('(')[0]
-                        server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
-                        server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
-                        server_dict["user"] = server_list[ssh_index + 1]
-                    except Exception as e:
-                        capture_exception(e)
-                        logger.error("Exception while get server info: %s " % e)
-                        match_server = False
-                    else:
-                        logger.info("Server host info: %s" % server_dict)
-                        match_server = True
-                        break
-
-                else:
-                    ssh_str = 'ssh'.encode('utf-8')
-
-                    ssh_index = server_list.index(ssh_str)
-                    try:
-                        server_dict["id"] = server_list[0].split(b":")[0]
-                        server_dict["name"] = server_list[1].split(b'(')[0]
-                        server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
-                        server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
-                        server_dict["user"] = server_list[ssh_index + 1]
-                    except Exception as e:
-                        capture_exception(e)
-                        logger.error("Exception while get server info: %s " % e)
-                        match_server = False
-                    else:
-                        logger.info("Server host info: %s" % server_dict)
-                        match_server = True
-                        break
     elif index_server == 2:
         child_timeout(child)
     else:
         logger.debug("Debug console info: %s" % child.before)
 
 
-def server_login(child, server):
+def server_match():
+    global server_info_list, server, match_server
+    for server_info in server_info_list:
+        if server in server_info:
+            server_list = server_info.split()
+            logger.debug("Debug server info: %s %s" % (server_info, server_list))
+
+            if version < (3, 0):
+                ssh_str = 'ssh'
+                ssh_index = server_list.index(ssh_str)
+                try:
+                    server_dict["id"] = server_list[0].split(":")[0]
+                    server_dict["name"] = server_list[1].split('(')[0]
+                    server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
+                    server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
+                    server_dict["user"] = server_list[ssh_index + 1]
+                except Exception as e:
+                    capture_exception(e)
+                    logger.error("Exception while get server info: %s " % e)
+                    match_server = False
+                else:
+                    logger.info("Server host info: %s" % server_dict)
+                    match_server = True
+                    break
+
+            else:
+                ssh_str = 'ssh'.encode('utf-8')
+
+                ssh_index = server_list.index(ssh_str)
+                try:
+                    server_dict["id"] = server_list[0].split(b":")[0]
+                    server_dict["name"] = server_list[1].split(b'(')[0]
+                    server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
+                    server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
+                    server_dict["user"] = server_list[ssh_index + 1]
+                except Exception as e:
+                    capture_exception(e)
+                    logger.error("Exception while get server info: %s " % e)
+                    match_server = False
+                else:
+                    logger.info("Server host info: %s" % server_dict)
+                    match_server = True
+                    break
+
+
+def server_login(login_child, server):
     global search_str
     search_str = search_string(server)
 
     global filter_buf, filter_buf_size, output_buf, output_buf_size
+
     filter_buf, output_buf = '', ''
     filter_buf_size, output_buf_size = 125, 1024 * 1024 * 1024
 
     global match_server, server_exit, jumper_exit, login_status, \
-        root_user, login_user, send_over
-    match_server, server_exit, login_status, jumper_exit, root_user, \
-    send_over, login_user = False, False, False, False, False, False, 0
+        root_user, login_user
 
-    global search_prompt, search_prompt_name, search_prompt_ip,\
-        login_prompt, user_prompt, root_prompt
+    match_server, server_exit, login_status, jumper_exit, root_user, send_over, login_user = \
+        False, False, False, False, False, False, 0
+
     server = search_str[1:]
-
     end_str = '\[1B\[1024D\[K'
+
+    global search_prompt, search_prompt_name, search_prompt_ip, \
+        login_prompt, user_prompt, root_prompt
+
     search_prompt = re.compile('\d+: .+' + server + '.+' + end_str)
     search_prompt_name = re.compile('\d+: ' + server + '.+' + '\d+.\d+.\d+.\d+:\d+' + 'ssh' + '.+' + end_str)
     search_prompt_ip = re.compile('\d+: .+' + server + ':\d+' + 'ssh' + '.+' + end_str)
@@ -284,12 +283,12 @@ def server_login(child, server):
         if version < (3, 0):
             login_server_cmd = 'ssh ' + server_dict["user"] + '@' + server_dict["host"] + " -p " + server_dict["port"]
         else:
-            login_server_cmd = b'ssh ' + server_dict["user"] + b'@' + server_dict["host"] + b" -p " + server_dict["port"]
-        child.sendline(login_server_cmd)
+            login_server_cmd = b'ssh ' + server_dict["user"] + b'@' + server_dict["host"] + b" -p " + server_dict[
+                "port"]
+        login_child.sendline(login_server_cmd)
         logger.info("Entering interactive ssh dialog!")
-        child.interact(output_filter=filter_output, input_filter=filter_input)
+        login_child.interact(output_filter=filter_output, input_filter=filter_input)
     else:
         logger.error("Jumper server Wrong!")
 
-    child.close(force=True)
-
+    login_child.close(force=True)

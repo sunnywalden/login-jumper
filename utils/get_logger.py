@@ -14,14 +14,10 @@ sys.path.append(BASE_DIR)
 
 
 class Logger(object):
-    def __init__(self):
-        self.logger = logging.getLogger('logger')
-
     def logger_generate(self, name):
+        logger = logging.getLogger('logger')
 
-        self.logger.setLevel(logging.INFO)
-
-        unix_time = time.time()
+        logger.setLevel(logging.INFO)
 
         log_file = os.path.join('../logs', name + '.log')
 
@@ -31,7 +27,7 @@ class Logger(object):
         formatter = logging.Formatter(
             fmt='%(asctime)s %(process)d %(levelname)s %(thread)d - %(funcName)s %(filename)s:%(lineno)d %(message)s')
         handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        logger.addHandler(handler)
         socket.setdefaulttimeout(10)
 
-        return self.logger
+        return logger
