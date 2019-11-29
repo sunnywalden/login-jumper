@@ -6,7 +6,11 @@ import logging
 import socket
 from logging.handlers import RotatingFileHandler
 import os
+import sys
 import time
+
+BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(BASE_DIR)
 
 
 class Logger(object):
@@ -14,29 +18,15 @@ class Logger(object):
         self.logger = logging.getLogger('logger')
 
     def logger_generate(self, name):
-        # log_level = logging[level]
-        # try:
-        #     log_level = logging['INFO']
-        #     print('debug log level %s' % log_level)
-        #     self.logger.setLevel(log_level)
-        #
-        # except Exception, e:
-        #     self.logger.info('Logger init failed %s' % e)
-        # log_level = 'logging.INFO'
 
         self.logger.setLevel(logging.INFO)
 
         unix_time = time.time()
-        # d_time = time.strftime()
 
-        log_file = os.path.join('../logs', name + '.log')
+        log_file = os.path.join('logs', name + '.log')
 
-        # print('generate log file %s' % log_file)
         handler = RotatingFileHandler(filename=log_file, mode='a', encoding='utf-8', maxBytes=1024 * 4096,
                                       backupCount=3)
-        # if os.path.isfile(log_file):
-        # print('log file %s generate successful' % os.path.abspath(log_file))
-        #        else:
 
         formatter = logging.Formatter(
             fmt='%(asctime)s %(process)d %(levelname)s %(thread)d - %(funcName)s %(filename)s:%(lineno)d %(message)s')
