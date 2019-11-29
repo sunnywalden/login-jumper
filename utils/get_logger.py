@@ -23,7 +23,7 @@ class Logger(object):
 
         unix_time = time.time()
 
-        log_file = os.path.join('logs', name + '.log')
+        log_file = os.path.join('../logs', name + '.log')
 
         handler = RotatingFileHandler(filename=log_file, mode='a', encoding='utf-8', maxBytes=1024 * 4096,
                                       backupCount=3)
