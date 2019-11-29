@@ -13,14 +13,18 @@ sys.path.append(BASE_DIR)
 from bin.jumper_expect import jumper_login
 from bin.jumper_expect import server_login
 from utils.get_logger import Logger
-from conf import config
+from utils import config
 
 
 def main():
     log = Logger()
     logger = log.logger_generate(__name__)
 
-    sentry_sdk.init(config.sentry_id)
+    # aliyun setting
+    sentry_id = config.get_config('Sentry', 'sentry_id')
+
+    if sentry_id:
+        sentry_sdk.init(sentry_id)
 
     parser = argparse.ArgumentParser(usage='python main.py [-H [host]]',
                                      description='Login server via jumper')

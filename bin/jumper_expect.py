@@ -5,12 +5,11 @@
 import os
 import re
 import sys
-import getpass
 import pexpect
 import signal
 from sentry_sdk import capture_exception
 
-from conf import config
+from utils import config
 from utils.get_logger import Logger
 from utils.jumper_info import jumper_info
 from utils.terminal_size import get_terminal_size
@@ -122,9 +121,10 @@ def jumper_login():
     jumper_infos = jumper_info()
     host = jumper_infos["host"]
     port = jumper_infos["port"]
-    system_profile = config.system_profile
+    system_profile = config.get_config('System', 'system_profile')
 
-    os.system('source ' + system_profile)
+    if system_profile:
+        os.system('source ' + system_profile)
     username = os.getenv("jumper_username")
     lang = os.getenv("LANG")
     lc_type = os.getenv("LC_CTYPE")
