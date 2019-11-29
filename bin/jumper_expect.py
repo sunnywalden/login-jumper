@@ -8,6 +8,11 @@ import sys
 import getpass
 import pexpect
 import signal
+from sentry_sdk import capture_exception
+
+from utils.get_logger import Logger
+from utils.jumper_info import jumper_info
+from utils.terminal_size import get_terminal_size
 
 version = sys.version_info
 v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro)
@@ -16,15 +21,6 @@ v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro
 if version < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf-8')
-
-
-BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
-sys.path.append(BASE_DIR)
-
-from utils.get_logger import Logger
-from utils.jumper_info import jumper_info
-from utils.terminal_size import get_terminal_size
-
 
 log = Logger()
 logger = log.logger_generate(__name__)
@@ -125,14 +121,15 @@ def jumper_login():
     jumper_infos = jumper_info()
     host = jumper_infos["host"]
     port = jumper_infos["port"]
-    if os.getenv("jumper_username"):
-        username = os.getenv("jumper_username")
-    else:
-        username = input('jumper server loging username: ')
+    username = os.getenv("jumper_username")
+    if not username:
+        if version < (3, 0):
+            username = raw_input('jumper server loging username: ')
+        else:
+            username = input('jumper server loging username: ')
         os.environ['jumper_username'] = username
-    if os.getenv('jumper_password'):
-        password = os.getenv('jumper_password')
-    else:
+    password = os.getenv('jumper_password')
+    if not password:
         password = getpass.getpass('jumper account loging password: ')
         os.environ['jumper_password'] = password
 
@@ -204,6 +201,7 @@ def search_server():
                         server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
                         server_dict["user"] = server_list[ssh_index + 1]
                     except Exception as e:
+                        capture_exception(e)
                         logger.error("Exception while get server info: %s " % e)
                         match_server = False
                     else:
@@ -222,6 +220,7 @@ def search_server():
                         server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
                         server_dict["user"] = server_list[ssh_index + 1]
                     except Exception as e:
+                        capture_exception(e)
                         logger.error("Exception while get server info: %s " % e)
                         match_server = False
                     else:
