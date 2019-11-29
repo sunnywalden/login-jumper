@@ -9,3 +9,5 @@ jumper_port = 22
 # [Session]
 
 alive_interval = 20000000000
+
+sentry_id = 'https://******@sentry.io/######'

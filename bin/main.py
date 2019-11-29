@@ -13,13 +13,14 @@ sys.path.append(BASE_DIR)
 from bin.jumper_expect import jumper_login
 from bin.jumper_expect import server_login
 from utils.get_logger import Logger
+from conf import config
 
 
 def main():
     log = Logger()
     logger = log.logger_generate(__name__)
 
-    sentry_sdk.init("https://ed3cff2ec6c3435a906f68ab90ccb16c@sentry.io/1835192")
+    sentry_sdk.init(config.sentry_id)
 
     parser = argparse.ArgumentParser(usage='python main.py [-H [host]]',
                                      description='Login server via jumper')

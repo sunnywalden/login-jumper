@@ -5,13 +5,19 @@ sudo: false
 language: python
 
 # Set the python version to 2.7
-python: 3.7
+python: 3.7.5
+
+#services:
+#  - mysql
 
 # Install the codecov pip dependency
 install:
-  - pip install codecov
+  - pip install codecov coverage
   - pip install -r requirements.txt
-
+#
+#before_script:
+#  - flake8 . --count --exclude=./.* --select=E9,F63,F7,F82 --show-source --statistics
+#  - mysql -e "CREATE DATABASE test CHARSET UTF8;"
 # Run the unit test
 script:
   - coverage run tests.py
