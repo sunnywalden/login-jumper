@@ -2,11 +2,10 @@
 # coding=utf-8
 # author: sunnywalden@gmail.com
 
-from utils.get_logger import Logger
+from utils.get_logger import logger_generate
 from utils import config
 
-log = Logger()
-logger = log.logger_generate(__name__)
+logger = logger_generate(__name__)
 
 
 def jumper_info():

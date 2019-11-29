@@ -12,13 +12,12 @@ sys.path.append(BASE_DIR)
 
 from bin.jumper_expect import jumper_login
 from bin.jumper_expect import server_login
-from utils.get_logger import Logger
+from utils.get_logger import logger_generate
 from utils import config
 
 
 def main():
-    log = Logger()
-    logger = log.logger_generate(__name__)
+    logger = logger_generate(__name__)
 
     # aliyun setting
     sentry_id = config.get_config('Sentry', 'sentry_id')
