@@ -8,6 +8,7 @@ import sys
 import pexpect
 import signal
 from sentry_sdk import capture_exception
+import rollbar
 
 from utils import config
 from utils.get_logger import logger_generate
@@ -217,6 +218,7 @@ def server_match():
                     server_dict["user"] = server_list[ssh_index + 1]
                 except Exception as e:
                     capture_exception(e)
+                    rollbar.report_exc_info()
                     logger.error("Exception while get server info: %s " % e)
                     match_server = False
                 else:
@@ -236,6 +238,7 @@ def server_match():
                     server_dict["user"] = server_list[ssh_index + 1]
                 except Exception as e:
                     capture_exception(e)
+                    rollbar.report_exc_info()
                     logger.error("Exception while get server info: %s " % e)
                     match_server = False
                 else:
