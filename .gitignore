@@ -1,7 +1,8 @@
 env/
 logs/
 .idea/
-conf
+conf.py
 *.pyc
 */*.pyc
 !.gitfile
+
