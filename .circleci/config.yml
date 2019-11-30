@@ -5,10 +5,6 @@ jobs:
       - image: python:3.7.5
     steps:
       - checkout
-      - env:
-          jumper_host: $jumper_host
-          jumper_port: $jumper_port
-          sentry_id: $sentry_id
       - run:
           name: "Testing"
           shell: /bin/bash
