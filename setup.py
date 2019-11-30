@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="login-jumper",
-    version="1.5.5Beta",
+    version="1.5.5RC",
     author="SunnyWalden",
     author_email="sunnywalden@gmail.com",
     description="Logging ecs automatic via jumper server",
@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/sunnywalden/login-jumper",
     packages=setuptools.find_packages(),
+    data_files=[('conf', ['config_template.ini, redis.ini'])],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
