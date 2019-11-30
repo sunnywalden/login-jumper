@@ -15,7 +15,8 @@ sys.path.append(BASE_DIR)
 def logger_generate(name):
     logger = logging.getLogger('logger')
 
-    logger.setLevel(logging.INFO)
+    # logger.setLevel(logging.INFO)
+    logger.setLevel(logging.ERROR)
 
     log_file = os.path.join('../logs', name + '.log')
 
