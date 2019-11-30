@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="login-jumper",
-    version="1.5.4",
+    version="1.5.5Alpha",
     author="SunnyWalden",
     author_email="sunnywalden@gmail.com",
     description="Logging ecs automatic via jumper server",
@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache 2.0 License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     install_requires=['pycrypto', 'paramiko', 'pexpect', 'sentry-sdk', 'rollbar', 'redis'],
