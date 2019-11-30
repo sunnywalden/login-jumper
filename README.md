@@ -13,16 +13,37 @@
 
 无pip环境的，请先部署pip（参考命令：sudo easy_install pip）。
 
+1. 配置pip
+
 ---
-    sudo mkdir -p ~/.pip/
+
+sudo mkdir -p ~/.pip/
         
-    sudo echo "[global]" > ~/.pip/pip.conf
+sudo echo "[global]" > ~/.pip/pip.conf
     
-    sudo echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
-    
-    sudo pip install --upgrade pip && sudo pip install -r requirements.txt
- 
+sudo echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
+
+sudo pip install --upgrade pip
+
 ---
+
+2.安装虚拟环境
+
+sudo pip install virtualenv
+
+virtualenv --no-site-packages env
+
+source env/bin/activate
+
+3.安装 
+
+---
+
+sudo pip install login-jumper==1.5.5b0
+
+
+---
+    
  
    
 #### 更新conf/路径下config.py文件中的堡垒机登录信息

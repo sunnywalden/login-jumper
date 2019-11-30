@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="login-jumper",
-    version="1.5.5Alpha",
+    version="1.5.5Beta",
     author="SunnyWalden",
     author_email="sunnywalden@gmail.com",
     description="Logging ecs automatic via jumper server",
