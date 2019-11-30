@@ -1,5 +1,6 @@
 pycrypto
 paramiko
 pexpect
+redis
 sentry-sdk
 rollbar

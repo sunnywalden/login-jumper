@@ -15,12 +15,10 @@ else:
     import configparser as config_parser
 
 
-def get_config(section, option):
+def get_config(section, option, file_path='../conf/config.ini'):
     if os.getenv(option, None):
         if os.getenv(option):
             return os.getenv(option)
-
-    file_path = '../conf/config.ini'
 
     if version < (3, 0):
         conf = config_parser.ConfigParser(allow_no_value=True)
@@ -30,8 +28,8 @@ def get_config(section, option):
         conf.read_file(open(file_path))
     if conf.has_section(section):
         if conf.has_option(section, option):
-            jumper_host = conf.get(section, option)
-            return jumper_host
+            conf_value = conf.get(section, option)
+            return conf_value
         else:
             return None
     else:

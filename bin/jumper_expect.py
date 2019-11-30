@@ -9,11 +9,13 @@ import pexpect
 import signal
 from sentry_sdk import capture_exception
 import rollbar
+import json
 
 from utils import config
 from utils.get_logger import logger_generate
 from utils.jumper_info import jumper_info
 from utils.terminal_size import get_terminal_size
+from utils.my_redis import redis_handler
 
 version = sys.version_info
 v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro)
@@ -26,12 +28,12 @@ if version < (3, 0):
 logger = logger_generate(__name__)
 
 
-def search_string(search_strings):
-    if re.match(r'^\d+$', search_strings):
-        search_str_res = ':' + search_strings
+def search_string(string):
+    if re.match(r'^\d+$', string):
+        searching_str = ':' + string
     else:
-        search_str_res = '/' + search_strings
-    return search_str_res
+        searching_str = '/' + string
+    return searching_str
 
 
 def child_timeout(child_timout):
@@ -43,8 +45,9 @@ def child_timeout(child_timout):
 
 
 def filter_output(s):
-    global child, output_buf, search_str, server_exit, login_status, login_prompt, \
-         user_prompt, root_user, login_user, output_buf_size
+    global child
+    global output_buf, search_str, server_exit, login_status, login_prompt, \
+        user_prompt, root_user, login_user, output_buf_size, server_match_result
 
     root_str = ']#'
     jumper_str = 'USMShell'
@@ -55,7 +58,7 @@ def filter_output(s):
     output_buf = output_buf[-output_buf_size:]
     server = search_str[1:]
     if login_prompt.search(output_buf):
-        if match_server:
+        # if server_match_result:
             if user_prompt.search(output_buf) and not login_status:
                 logger.info("Login server %s success!" % server)
                 login_user = 1
@@ -69,16 +72,17 @@ def filter_output(s):
                     logger.info("Exit from server success!")
                     server_exit = True
                     child.sendline("ls")
-        else:
-            logger.error("No server matched found")
-            child.sendline(':q')
+        # else:
+        #     logger.error("No server matched found")
+        #     child.sendline(':q')
 
     return s
 
 
 def filter_input(s):
-    global child, user_prompt, filter_buf, filter_buf_size, search_str, server_exit, \
-         jumper_exit, root_user, login_status, login_user
+    global child
+    global user_prompt, filter_buf, filter_buf_size, search_str, server_exit, \
+        jumper_exit, root_user, login_status, login_user
 
     exit_str = 'exit'
     quit_str = ':q'
@@ -108,6 +112,7 @@ def filter_input(s):
 
 def sigwinch_pass_through(sig, data):
     global child
+
     if not child.closed:
         child.setwinsize(*get_terminal_size())
 
@@ -165,14 +170,17 @@ def jumper_login():
     return child
 
 
-def search_server():
-    global child, match_server, server_dict, search_str, server, server_info_list
-    server = search_str[1:]
-    search_str = '\d+ .+' + server + '.+' + '\r\n'
+def search_server(host):
+    global child
+
+    host_search_str = search_string(host)
+    server = host_search_str[1:]
+    host_search_str = '\d+ .+' + server + '.+' + '\r\n'
+    server_info_list = []
 
     child.sendline('ls')
-    search_str = search_str.encode(encoding='utf-8')
-    searcher_prompt = re.compile(search_str)
+    host_search_str = host_search_str.encode(encoding='utf-8')
+    searcher_prompt = re.compile(host_search_str)
     index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
 
     if index_server <= 0:
@@ -192,82 +200,81 @@ def search_server():
 
         if not version < (3, 0):
             server = server.encode('utf-8')
-        server_match()
 
     elif index_server == 2:
         child_timeout(child)
     else:
         logger.debug("Debug console info: %s" % child.before)
 
+    return server_info_list, server
 
-def server_match():
-    global server_info_list, server, match_server
+
+def query_servers(host):
+
+    jumper_login()
+
+    server_info_list, server_regex = search_server(host)
+
+    servers_dict_list = []
+
     for server_info in server_info_list:
-        if server in server_info:
-            server_list = server_info.split()
-            logger.debug("Debug server info: %s %s" % (server_info, server_list))
+        server_dict = {}
 
-            if version < (3, 0):
-                ssh_str = 'ssh'
-                ssh_index = server_list.index(ssh_str)
-                try:
-                    server_dict["id"] = server_list[0].split(":")[0]
-                    server_dict["name"] = server_list[1].split('(')[0]
-                    server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
-                    server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
-                    server_dict["user"] = server_list[ssh_index + 1]
-                except Exception as e:
-                    capture_exception(e)
-                    rollbar.report_exc_info()
-                    logger.error("Exception while get server info: %s " % e)
-                    match_server = False
-                else:
-                    logger.info("Server host info: %s" % server_dict)
-                    match_server = True
-                    break
+        server_list = server_info.split()
+        logger.debug("Debug server info: %s %s" % (server_info, server_list))
 
+        if version < (3, 0):
+            ssh_str = 'ssh'
+            ssh_index = server_list.index(ssh_str)
+            try:
+                server_dict["id"] = server_list[0].split(":")[0]
+                server_dict["name"] = server_list[1].split('(')[0]
+                server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
+                server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
+                server_dict["user"] = server_list[ssh_index + 1]
+            except Exception as e:
+                capture_exception(e)
+                rollbar.report_exc_info()
+                logger.error("Exception while get server info: %s " % e)
             else:
-                ssh_str = 'ssh'.encode('utf-8')
+                # 存储到缓存
+                r = redis_handler()
+                name_key = server_dict["name"]
+                r.set(name_key, json.dumps(server_dict))
+                ip_key = server_dict["host"]
+                r.set(ip_key, json.dumps(server_dict))
 
-                ssh_index = server_list.index(ssh_str)
-                try:
-                    server_dict["id"] = server_list[0].split(b":")[0]
-                    server_dict["name"] = server_list[1].split(b'(')[0]
-                    server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
-                    server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
-                    server_dict["user"] = server_list[ssh_index + 1]
-                except Exception as e:
-                    capture_exception(e)
-                    rollbar.report_exc_info()
-                    logger.error("Exception while get server info: %s " % e)
-                    match_server = False
-                else:
-                    logger.info("Server host info: %s" % server_dict)
-                    match_server = True
-                    break
+                servers_dict_list.append(server_dict)
+                logger.info("Server host info: %s" % server_dict)
+                break
 
+        else:
+            ssh_str = 'ssh'.encode('utf-8')
 
-def server_login(login_child, server_s):
-    global search_str
-    search_str = search_string(server_s)
+            ssh_index = server_list.index(ssh_str)
+            try:
+                server_dict["id"] = server_list[0].split(b":")[0]
+                server_dict["name"] = server_list[1].split(b'(')[0]
+                server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
+                server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
+                server_dict["user"] = server_list[ssh_index + 1]
+            except Exception as e:
+                capture_exception(e)
+                rollbar.report_exc_info()
+                logger.error("Exception while get server info: %s " % e)
+            else:
+                servers_dict_list.append(server_dict)
+                logger.info("Server host info: %s" % server_dict)
+                break
 
-    global filter_buf, filter_buf_size, output_buf, output_buf_size
+    searching_str = search_string(host)
+    server_info = searching_str[1:]
 
-    filter_buf, output_buf = '', ''
-    filter_buf_size, output_buf_size = 125, 1024 * 1024 * 1024
-
-    global match_server, server_exit, jumper_exit, login_status, \
-        root_user, login_user
-
-    match_server, server_exit, login_status, jumper_exit, root_user, send_over, login_user = \
-        False, False, False, False, False, False, 0
-
-    server_info = search_str[1:]
+    # global变量
+    global end_str
     end_str = '\[1B\[1024D\[K'
-
     global search_prompt, search_prompt_name, search_prompt_ip, \
         login_prompt, user_prompt, root_prompt
-
     search_prompt = re.compile('\d+: .+' + server_info + '.+' + end_str)
     search_prompt_name = re.compile('\d+: ' + server_info + '.+' + '\d+.\d+.\d+.\d+:\d+' + 'ssh' + '.+' + end_str)
     search_prompt_ip = re.compile('\d+: .+' + server_info + ':\d+' + 'ssh' + '.+' + end_str)
@@ -275,22 +282,75 @@ def server_login(login_child, server_s):
     user_prompt = re.compile('\[\w+@\w+ ~\]\$')
     root_prompt = re.compile('\[\w+@\w+ \w+\]#')
 
-    logger.info("Start search for host: %s" % server_info)
+    server_match_bool, server_match_list = get_server(servers_dict_list, host)
 
-    global server_dict
-    server_dict = {}
-    search_server()
+    return server_match_bool, server_match_list, server_regex
 
-    if server_dict:
+
+def server_match(server_dicts, host, server_match_bool=False):
+    server_match_list = []
+
+    for server_info_dict in server_dicts:
+        if host in server_info_dict["name"] or server_info_dict["host"]:
+            server_match_bool = True
+            server_match_list.append(server_info_dict)
+
+    return server_match_bool, server_match_list
+
+
+def get_server(server_dicts, server_s):
+    global end_str
+
+    global filter_buf, filter_buf_size, output_buf, output_buf_size
+
+    logger.info("Start search for host: %s" % server_s)
+
+    server_match_bool, server_match_list = server_match(server_dicts, server_s)
+
+    return server_match_bool, server_match_list
+
+
+def server_login(server_info_dict):
+    global child
+    global filter_buf, filter_buf_size, output_buf, output_buf_size
+
+    filter_buf, output_buf = '', ''
+    filter_buf_size, output_buf_size = 125, 1024 * 1024 * 1024
+
+    server_info = server_info_dict["host"]
+
+    global search_str
+    search_str = server_info
+
+    ending_str = '\[1B\[1024D\[K'
+
+    global search_prompt, search_prompt_name, search_prompt_ip, \
+        login_prompt, user_prompt, root_prompt
+
+    search_prompt = re.compile('\d+: .+' + server_info + '.+' + ending_str)
+    search_prompt_name = re.compile('\d+: ' + server_info + '.+' + '\d+.\d+.\d+.\d+:\d+' + 'ssh' + '.+' + ending_str)
+    search_prompt_ip = re.compile('\d+: .+' + server_info + ':\d+' + 'ssh' + '.+' + ending_str)
+    login_prompt = re.compile('Welcome to Alibaba Cloud Elastic Compute Service !')
+    user_prompt = re.compile('\[\w+@\w+ ~\]\$')
+    root_prompt = re.compile('\[\w+@\w+ \w+\]#')
+
+    # 登录状态及用户
+    global login_user, server_exit, jumper_exit, login_status
+    login_user = 0
+    server_exit, jumper_exit, login_status = False, False, False
+
+    if server_info_dict:
         if version < (3, 0):
-            login_server_cmd = 'ssh ' + server_dict["user"] + '@' + server_dict["host"] + " -p " + server_dict["port"]
+            login_server_cmd = 'ssh ' + server_info_dict["user"] + '@' + server_info_dict["host"] + \
+                               " -p " + server_info_dict["port"]
         else:
-            login_server_cmd = b'ssh ' + server_dict["user"] + b'@' + server_dict["host"] + b" -p " + server_dict[
-                "port"]
-        login_child.sendline(login_server_cmd)
+            login_server_cmd = b'ssh ' + server_info_dict["user"] + b'@' + server_info_dict["host"] + b" -p " + \
+                               server_info_dict[
+                                   "port"]
+        child.sendline(login_server_cmd)
         logger.info("Entering interactive ssh dialog!")
-        login_child.interact(output_filter=filter_output, input_filter=filter_input)
+        child.interact(output_filter=filter_output, input_filter=filter_input)
     else:
         logger.error("Jumper server Wrong!")
 
-    login_child.close(force=True)
+    child.close(force=True)
