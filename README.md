@@ -39,7 +39,7 @@ source env/bin/activate
 
 ---
 
-sudo pip install login-jumper==1.5.5b0
+sudo pip install login-jumper
 
 
 ---
