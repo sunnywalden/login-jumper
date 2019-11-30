@@ -290,6 +290,8 @@ def query_servers(host):
 def server_match(server_dicts, host, server_match_bool=False):
     server_match_list = []
 
+    if not version < (3, 0):
+        host = host.encode('utf-8')
     for server_info_dict in server_dicts:
         if host in server_info_dict["name"] or server_info_dict["host"]:
             server_match_bool = True
@@ -318,6 +320,9 @@ def server_login(server_info_dict):
     filter_buf_size, output_buf_size = 125, 1024 * 1024 * 1024
 
     server_info = server_info_dict["host"]
+
+    if not version < (3, 0):
+        server_info = server_info.decode('utf-8')
 
     global search_str
     search_str = server_info
