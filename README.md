@@ -37,25 +37,17 @@ source env/bin/activate
 
 3.安装 
 
+下载release版本，解压
+
+安装依赖
+
 ---
 
-sudo pip install login-jumper
+sudo pip install -r requirements.txt
 
-
----
+--
     
- 
-   
-#### 更新conf/路径下config.py文件中的堡垒机登录信息
-注：jumper_host为堡垒机地址，jumper_port为堡垒机ssh端口，必须设置。
 
----
-
-jumper_host = 'Host IP'
-
-jumper_port = 'Host ssh Port'  
-
----  
 
 #### 设置堡垒机登录信息环境变量
 
@@ -74,17 +66,15 @@ jumper_port = 'Host ssh Port'
 
 #### 进入路径bin
 
----
-
-    cd bin/
-
----
-
 #### 指定主机参数，运行主程序
 
 请通过-H参数指定需要登录的主机，支持主机名称或IP地址（需登录主机的主机名称或IP地址可登录堡垒机，执行ls命令查看）。如需要登录env3主机：
 
 ---
+    source env/bin/activate
+    
+    cd bin/
+
 
     python server_gate.py -H env3
 
@@ -94,4 +84,4 @@ jumper_port = 'Host ssh Port'
 ### 注意事项
 
 请在堡垒机设置中开启""Usmshell使用命令行方式"
-=======
+
