@@ -17,7 +17,7 @@ from utils.get_logger import logger_generate
 from utils import config
 
 
-def main():
+def login_in():
     logger = logger_generate(__name__)
 
     sentry_id = config.get_config('Sentry', 'sentry_id')
@@ -29,7 +29,7 @@ def main():
     if sentry_id:
         sentry_sdk.init(sentry_id)
 
-    parser = argparse.ArgumentParser(usage='python main.py [-H [host]]',
+    parser = argparse.ArgumentParser(usage='python server_gate.py [-H [host]]',
                                      description='Login server via jumper')
     parser.add_argument('-H', default='env4', type=str, dest='host',
                         help="specify the host"
@@ -45,4 +45,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    login_in()

@@ -65,7 +65,7 @@ jumper_port = 'Host ssh Port'
 
 ---
 
-    python main.py -H env3
+    python server_gate.py -H env3
 
 ---
 
