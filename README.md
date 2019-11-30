@@ -45,21 +45,8 @@ source env/bin/activate
 
 sudo pip install -r requirements.txt
 
---
-    
-
-
-#### 设置堡垒机登录信息环境变量
-
-注：username为你的堡垒机账号，一般为姓名全拼，password为堡垒机账户密码必须设置，非首次登录可忽略。
-
 ---
 
-    export jumper_username='Your Username'
-
-    export jumper_password='Your Password'
-
----
 
 
 ### 使用
