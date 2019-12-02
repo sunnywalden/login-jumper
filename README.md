@@ -5,9 +5,10 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c735378085b404caf09a441238ad034)](https://www.codacy.com/manual/sunnywalden/login-jumper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sunnywalden/login-jumper&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://travis-ci.org/sunnywalden/login-jumper.svg?branch=master)](https://travis-ci.org/sunnywalden/login-jumper)
 
-## 部署
+## 使用
 
-### 下载项目代码
+
+## 部署
 
 #### 部署依赖
 
@@ -35,7 +36,23 @@ virtualenv --no-site-packages env
 
 source env/bin/activate
 
-3.安装 
+### 部署方式 
+
+部署方式，可选择pip安装或下载版本源码。
+
+### pip安装
+
+注：请替换'~/Documents/jump-server/'为安装路径
+
+---
+
+pip install login-jumper --root ~/Documents/jump-server/ --prefix ./
+
+---
+
+### 直接下载源码
+
+#### 下载项目发布版本
 
 下载release版本，解压
 
@@ -48,22 +65,68 @@ sudo pip install -r requirements.txt
 ---
 
 
+## 配置
 
-### 使用
+进入安装路径下的conf目录，修改redis配置
+
+---
+
+
+[single]
+
+host = 127.0.0.1
+
+port = 6379
+
+database = 2
+
+password = 123456
+
+---
+
+修改堡垒机配置
+
+---
+
+
+[Server]
+
+# 堡垒机IP
+
+jumper_host = 192.168.1.100
+
+# 堡垒机ssh端口
+
+jumper_port = 22
+
+
+[Session]
+
+# 会话超时时长
+
+alive_interval = 20000000000
+
+
+[System]
+
+# .bash_profile路径
+
+system_profile = ~/.bash_profile
+
+---
+
+## 使用
 
 #### 进入路径bin
 
 #### 指定主机参数，运行主程序
 
-请通过-H参数指定需要登录的主机，支持主机名称或IP地址（需登录主机的主机名称或IP地址可登录堡垒机，执行ls命令查看）。如需要登录env3主机：
+请通过-H参数指定需要登录的主机，支持主机名称或IP地址（查询需登录主机的主机名称或IP地址可登录堡垒机，执行jmp -a query）。如需要登录env3主机：
 
 ---
     source env/bin/activate
     
-    cd bin/
-
-
-    python server_gate.py -H env3
+    jmp -H env3
 
 ---
 
