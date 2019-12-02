@@ -1,7 +1,10 @@
 env/
 logs/
 .idea/
-conf/config_dev.ini
+conf/config_*.ini
+conf/redis_*.ini
 *.pyc
 */*.pyc
 !.gitfile
+!conf.ini
+!redis.ini
