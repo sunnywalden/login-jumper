@@ -22,7 +22,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'jump = jumper:cli',
+            'jump = jumper:main',
             'jumper = server_gate:login_choice'
         ]
     },
