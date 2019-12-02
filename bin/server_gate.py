@@ -3,52 +3,74 @@
 # author: sunnywalden@gmail.com
 
 import argparse
+import json
 import os
 import sys
-import sentry_sdk
+
 import rollbar
-import json
+import sentry_sdk
 
 BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(BASE_DIR)
 
-from bin.jumper_expect import jumper_login, search_server, query_servers, server_match
-from bin.jumper_expect import get_server
+from bin.jumper_expect import jumper_login, query_servers, search_server
 from bin.jumper_expect import server_login
 from utils.get_logger import logger_generate
 from utils import config
 from utils.my_redis import redis_handler
 
+logger = logger_generate(__name__)
 
-def login_in():
-    logger = logger_generate(__name__)
+sentry_id = config.get_config('Sentry', 'sentry_id')
+roll_bar = config.get_config('App', 'roll_bar')
 
-    sentry_id = config.get_config('Sentry', 'sentry_id')
-    roll_bar = config.get_config('App', 'roll_bar')
+if roll_bar:
+    rollbar.init(roll_bar)
+    rollbar.report_message('Rollbar is configured correctly')
+if sentry_id:
+    sentry_sdk.init(sentry_id)
 
-    if roll_bar:
-        rollbar.init(roll_bar)
-        rollbar.report_message('Rollbar is configured correctly')
-    if sentry_id:
-        sentry_sdk.init(sentry_id)
 
-    parser = argparse.ArgumentParser(usage='python server_gate.py [-H [host]]',
-                                     description='Login server via jumper')
-    parser.add_argument('--host', '-H', default='env4', type=str, dest='host',
-                        help="specify the host"
-                             "(default: env4)")
-    parser.add_argument('--type', '-T', choices=['login', 'query'], default='login', type=str, dest='type',
-                        help="specify the type, login or query"
-                             "(default: login)")
+def login_choice(args):
 
-    args = parser.parse_args()
-    host = args.host
+    # parser = argparse.ArgumentParser(usage='python server_gate.py [-H [host]]',
+    #                                  description='Login server via jumper')
+    # parser.add_argument('--host', '-H', default='env4', type=str, dest='host',
+    #                     help="specify the host"
+    #                          "(default: env4)")
+    # parser.add_argument('--action', '-T', choices=['login', 'query'], default='login', type=str, dest='action',
+    #                     help="specify the type, login or query"
+    #                          "(default: login)")
+    # host = args.host
+    # action = args.action
+    if args:
+        print(args)
+    else:
+        args = sys.argv
+
+    action = 'login'
+    host = args[0]
+    if len(args) > 1:
+        action = args[1]
 
     # 登录堡垒机
     child = jumper_login()
     if not child:
         logger.info("Login jumper server failed")
 
+    if action == 'query':
+        # r = redis_handler()
+        # servers_list = r.keys('*')
+        #
+        # if not servers_list:
+        # 查询所有服务器
+        servers_list, server = search_server()
+        print(servers_list)
+    else:
+        login_in(child, host)
+
+
+def login_in(child, host):
     # 从缓存获取
     r = redis_handler()
     keys_list = r.keys('*' + host + '*')
