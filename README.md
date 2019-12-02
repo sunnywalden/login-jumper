@@ -46,7 +46,7 @@ source env/bin/activate
 
 ---
 
-pip install login-jumper --root ~/Documents/jump-server/ --prefix ./
+pip install login-jumper==2.1.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ---
 
@@ -60,7 +60,7 @@ pip install login-jumper --root ~/Documents/jump-server/ --prefix ./
 
 ---
 
-sudo pip install -r requirements.txt
+sudo pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ---
 
