@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="login-jumper",
-    version="1.5.5RC4",
+    version="1.5.6Alpha1",
     author="SunnyWalden",
     author_email="sunnywalden@gmail.com",
     description="Logging ecs automatic via jumper server",
@@ -15,14 +15,15 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={'': ['config.ini', 'redis.ini']},
     include_package_data=True,
-    data_files=[('config', ['conf/config.ini', 'conf/redis.ini'])],
+    data_files=[('conf', ['conf/config.ini', 'conf/redis.ini'])],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
     ],
     entry_points={
         'console_scripts': [
-            'jumper = jumper:cli'
+            'jump = jumper:cli',
+            'jumper = server_gate:login_choice'
         ]
     },
     scripts=['bin/server_gate.py'],
