@@ -5,10 +5,10 @@
 import os
 import sys
 
-BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
-sys.path.append(BASE_DIR)
+# BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))
+# sys.path.append(BASE_DIR)
 
-from bin.server_gate import login_choice
+from login_jumper.bin.server_gate import login_choice
 
 
 def main():

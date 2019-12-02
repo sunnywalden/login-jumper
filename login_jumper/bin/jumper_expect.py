@@ -11,11 +11,11 @@ from sentry_sdk import capture_exception
 import rollbar
 import json
 
-from utils import config
-from utils.get_logger import logger_generate
-from utils.jumper_info import jumper_info
-from utils.terminal_size import get_terminal_size
-from utils.my_redis import redis_handler
+from login_jumper.utils import config
+from login_jumper.utils.get_logger import logger_generate
+from login_jumper.utils.jumper_info import jumper_info
+from login_jumper.utils.terminal_size import get_terminal_size
+from login_jumper.utils.my_redis import redis_handler
 
 version = sys.version_info
 v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro)
@@ -25,7 +25,7 @@ if version < (3, 0):
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-logger = logger_generate(__name__)
+logger = logger_generate()
 
 
 def search_string(string):
@@ -37,11 +37,17 @@ def search_string(string):
 
 
 def child_timeout(child_timout):
+    servers_str = child_timout.before
+    if not version < (3, 0):
+        servers_str = servers_str.decode('utf-8')
+    server_list = servers_str.split('\r\n')
     logger.info("Debug console info: %s" % child_timout.before)
     logger.info("Timeout while searching host!")
     logger.info("Loging out jumper!")
     logger.info('Left interactive mode.')
     logger.info('########################################')
+
+    return server_list
 
 
 def filter_output(s):
@@ -54,7 +60,10 @@ def filter_output(s):
     if version < (3, 0):
         output_buf += s
     else:
-        output_buf += s.decode('utf-8')
+        try:
+            output_buf += s.decode('utf-8')
+        except UnicodeDecodeError:
+            logger.error('Decode output failed!')
     output_buf = output_buf[-output_buf_size:]
     server = search_str[1:]
     if login_prompt.search(output_buf):
@@ -151,57 +160,43 @@ def jumper_login():
 
     command = 'ssh -o StrictHostKeyChecking=no %(user)s@%(host)s -p %(port)s' \
               % {"user": username, "host": host, "port": str(port)}
-    global child
     child = pexpect.spawn(command, maxread=1024 * 1024 * 1024, timeout=30)
     child.setwinsize(*get_terminal_size())
     signal.signal(signal.SIGWINCH, sigwinch_pass_through)
     logger.info('########################################')
-    logger.info('Loging jumper!')
+    logger.info('Login jumper!')
     index1 = child.expect('usmshell')
     if index1 != 0:
         logger.error("Login jump failed!")
         logger.info('########################################')
         return False
-    logger.info('Loging jumper success!')
+    logger.info('Login jumper success!')
     return child
 
 
-def search_server(host=None):
-    global child
+def search_server(search_child, host=None):
 
     server_info_list = []
-    server = None
 
     if host:
-        host_search_str = search_string(host)
-        server = host_search_str[1:]
-        host_search_str = '\d+ .+' + server + '.+' + '\r\n'
-
-        host_search_str = host_search_str.encode(encoding='utf-8')
+        host_search_str = '\d+ .+' + host + '.+' + '\r\n'
+    else:
+        host_search_str = '[usmshell]$ '
+    if not version < (3, 0):
+        searcher_prompt = re.compile(host_search_str.encode(encoding='utf-8'))
+    else:
         searcher_prompt = re.compile(host_search_str)
 
-    if host:
-        child.sendline('ls')
-        index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
-    else:
-        child.sendline('ls')
-        index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
-        server_infos = child.after
-        if server_infos:
-            if version < (3, 0):
-                split_str = '[K'
+    search_child.sendline('ls')
+    index_server = search_child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
 
-            else:
-                split_str = b'[K'
-            server_info_list = server_infos.split(split_str)
-
-    if host and index_server <= 0:
+    if index_server <= 0:
         if host:
-            logger.info("Search host %s success!" % server)
-        res = child.after
+            logger.info("Search host %s success!" % host)
+        res = search_child.after
         server_infos = res
         logger.debug("Debug servers hosts: %s" % server_infos)
-        logger.debug("Debug match string: %s " % child.after)
+        logger.debug("Debug match string: %s " % search_child.after)
         if version < (3, 0):
             split_str = '[K'
 
@@ -211,22 +206,28 @@ def search_server(host=None):
 
         logger.debug("Debug servers list:%s" % server_info_list)
 
-        if not version < (3, 0) and server:
-            server = server.encode('utf-8')
+        if not version < (3, 0) and host:
+            host = host.encode('utf-8')
 
-    elif host and index_server == 2:
-        child_timeout(child)
+    elif index_server == 2:
+        server_info_list = child_timeout(search_child)
+
     else:
-        logger.debug("Debug console info: %s" % child.before)
+        logger.debug("Debug console info: %s" % search_child.before)
 
-    return server_info_list, server
+    return server_info_list, host
 
 
-def query_servers(host=None):
-    jumper_login()
+def store_redis(server_dict):
+    # 存储到缓存
+    r = redis_handler()
+    name_key = server_dict["name"]
+    r.set(name_key, json.dumps(server_dict))
+    ip_key = server_dict["host"]
+    r.set(ip_key, json.dumps(server_dict))
 
-    server_info_list, server_regex = search_server(host)
 
+def str_to_dicts(trans_child, server_info_list):
     servers_dict_list = []
 
     for server_info in server_info_list:
@@ -237,47 +238,81 @@ def query_servers(host=None):
 
         if version < (3, 0):
             ssh_str = 'ssh'
-            ssh_index = server_list.index(ssh_str)
-            try:
-                server_dict["id"] = server_list[0].split(":")[0]
-                server_dict["name"] = server_list[1].split('(')[0]
-                server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
-                server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
-                server_dict["user"] = server_list[ssh_index + 1]
-            except Exception as e:
-                capture_exception(e)
-                rollbar.report_exc_info()
-                logger.error("Exception while get server info: %s " % e)
-            else:
-                # 存储到缓存
-                r = redis_handler()
-                name_key = server_dict["name"]
-                r.set(name_key, json.dumps(server_dict))
-                ip_key = server_dict["host"]
-                r.set(ip_key, json.dumps(server_dict))
-
-                servers_dict_list.append(server_dict)
-                logger.info("Server host info: %s" % server_dict)
-                break
+            common_split = ":"
+            name_split = '('
+            # try:
+            #     ssh_index = server_list.index(ssh_str)
+            # except ValueError:
+            #     logger.error("No server matched")
+            #     print('No server matched')
+            #     trans_child.sendline('exit')
+            # try:
+            #     server_dict["id"] = server_list[0].split(":")[0]
+            #     server_dict["name"] = server_list[1].split('(')[0]
+            #     server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
+            #     server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
+            #     server_dict["user"] = server_list[ssh_index + 1]
+            # except Exception as e:
+            #     capture_exception(e)
+            #     rollbar.report_exc_info()
+            #     logger.error("Exception while get server info: %s " % e)
+            # else:
+            #     # 存储到redis
+            #     store_redis(server_dict)
+            #
+            #     servers_dict_list.append(server_dict)
+            #     logger.info("Server host info: %s" % server_dict)
+            #     break
 
         else:
             ssh_str = 'ssh'.encode('utf-8')
 
             ssh_index = server_list.index(ssh_str)
-            try:
-                server_dict["id"] = server_list[0].split(b":")[0]
-                server_dict["name"] = server_list[1].split(b'(')[0]
-                server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
-                server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
-                server_dict["user"] = server_list[ssh_index + 1]
-            except Exception as e:
-                capture_exception(e)
-                rollbar.report_exc_info()
-                logger.error("Exception while get server info: %s " % e)
-            else:
-                servers_dict_list.append(server_dict)
-                logger.info("Server host info: %s" % server_dict)
-                break
+            common_split = b":"
+            name_split = b'('
+            # try:
+            #     server_dict["id"] = server_list[0].split(b":")[0]
+            #     server_dict["name"] = server_list[1].split(b'(')[0]
+            #     server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
+            #     server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
+            #     server_dict["user"] = server_list[ssh_index + 1]
+            # except Exception as e:
+            #     capture_exception(e)
+            #     rollbar.report_exc_info()
+            #     logger.error("Exception while get server info: %s " % e)
+            # else:
+            #     # 存储到redis
+            #     store_redis(server_dict)
+            #
+            #     servers_dict_list.append(server_dict)
+            #     logger.info("Server host info: %s" % server_dict)
+            #     break
+        try:
+            server_dict["id"] = server_list[0].split(common_split)[0]
+            server_dict["name"] = server_list[1].split(name_split)[0]
+            server_dict["host"] = server_list[ssh_index - 1].split(common_split)[0]
+            server_dict["port"] = server_list[ssh_index - 1].split(common_split)[1]
+            server_dict["user"] = server_list[ssh_index + 1]
+        except Exception as e:
+            capture_exception(e)
+            rollbar.report_exc_info()
+            logger.error("Exception while get server info: %s " % e)
+        else:
+            # 存储到redis
+            store_redis(server_dict)
+
+            servers_dict_list.append(server_dict)
+            logger.info("Server host info: %s" % server_dict)
+            break
+
+    return servers_dict_list
+
+
+def query_servers(query_child, host=None):
+
+    server_info_list, server_regex = search_server(query_child, host)
+
+    servers_dict_list = str_to_dicts(query_child, server_info_list)
 
     searching_str = search_string(host)
     server_info = searching_str[1:]
@@ -324,8 +359,9 @@ def get_server(server_dicts, server_s):
     return server_match_bool, server_match_list
 
 
-def server_login(server_info_dict):
+def server_login(login_child, server_info_dict):
     global child
+    child = login_child
     global filter_buf, filter_buf_size, output_buf, output_buf_size
 
     filter_buf, output_buf = '', ''
@@ -352,9 +388,9 @@ def server_login(server_info_dict):
     root_prompt = re.compile('\[\w+@\w+ \w+\]#')
 
     # 登录状态及用户
-    global login_user, server_exit, jumper_exit, login_status
+    global login_user, server_exit, jumper_exit, login_status, root_user
     login_user = 0
-    server_exit, jumper_exit, login_status = False, False, False
+    server_exit, jumper_exit, login_status, root_user = False, False, False, False
 
     if server_info_dict:
         if version < (3, 0):

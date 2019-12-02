@@ -1,6 +1,6 @@
 import unittest
 
-from bin.jumper_expect import jumper_login
+from login_jumper.bin.jumper_expect import jumper_login
 
 
 class MyTestCase(unittest.TestCase):

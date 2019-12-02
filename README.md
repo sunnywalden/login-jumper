@@ -5,6 +5,9 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c735378085b404caf09a441238ad034)](https://www.codacy.com/manual/sunnywalden/login-jumper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sunnywalden/login-jumper&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://travis-ci.org/sunnywalden/login-jumper.svg?branch=master)](https://travis-ci.org/sunnywalden/login-jumper)
 
+## 使用
+
+
 ## 部署
 
 #### 部署依赖
@@ -102,22 +105,12 @@ system_profile = ~/.bash_profile
 
 #### 指定主机参数，运行主程序
 
-请通过-H参数指定需要登录的主机，支持主机名称或IP地址（需登录主机的主机名称或IP地址可登录堡垒机，执行ls命令查看）。如需要登录env3主机：
+请通过-H参数指定需要登录的主机，支持主机名称或IP地址（查询需登录主机的主机名称或IP地址可登录堡垒机，执行jmp -a query）。如需要登录env3主机：
 
 ---
     source env/bin/activate
     
-    cd bin/
-    
-    export JUMPER_PATH=`pwd`
-    
-    ln -s server_gate.py /usr/local/bin/jumper
-    
-    export PATH=$JUMPER_PATH:/usr/local/bin:$PATH
-
-    alias jumper='python server_gate.py'
-    
-    jumper -H env3
+    jmp -H env3
 
 ---
 
