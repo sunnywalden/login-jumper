@@ -8,6 +8,8 @@ import sys
 version = sys.version_info
 v_info = str(version.major) + '.' + str(version.minor) + '.' + str(version.micro)
 
+BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "."))
+
 # 判断Python版本号
 if version < (3, 0):
     import ConfigParser as config_parser
@@ -15,7 +17,7 @@ else:
     import configparser as config_parser
 
 
-def get_config(section, option, file_path='../conf/config.ini'):
+def get_config(section, option, file_path=os.path.join(BASE_DIR, 'login_jumper/conf/config.ini')):
     if os.getenv(option, None):
         if os.getenv(option):
             return os.getenv(option)

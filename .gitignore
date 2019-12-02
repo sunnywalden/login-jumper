@@ -1,8 +1,13 @@
 env/
-logs/
+login_jumper/logs/
+dist
+build
 .idea/
-conf/config.ini
+login_jumper/conf/config_*.ini
+login_jumper/conf/redis_*.ini
 *.pyc
 */*.pyc
 !.gitfile
-
+!conf.ini
+!redis.ini
+login_jumper.egg-info
