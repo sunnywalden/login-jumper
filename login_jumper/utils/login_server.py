@@ -4,8 +4,8 @@
 
 import paramiko
 
-from utils.get_logger import logger_generate
-from utils.jumper_info import jumper_info
+from login_jumper.utils.get_logger import logger_generate
+from login_jumper.utils.jumper_info import jumper_info
 
 
 class JumperLogin:

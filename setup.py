@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="login-jumper",
-    version="1.5.5RC4",
+    name="login_jumper",
+    version="1.5.7Alpha5",
     author="SunnyWalden",
     author_email="sunnywalden@gmail.com",
     description="Logging ecs automatic via jumper server",
@@ -15,17 +15,24 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={'': ['config.ini', 'redis.ini']},
     include_package_data=True,
-    data_files=[('config', ['conf/config.ini', 'conf/redis.ini'])],
+    data_files=[
+        (
+            'login_jumper/conf/',
+            ['login_jumper/conf/config.ini', 'login_jumper/conf/redis.ini']),
+        (
+            'logs/.gitfile',
+            ['login_jumper/logs/.gitfile']
+        )
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
     ],
     entry_points={
         'console_scripts': [
-            'jumper = jumper:cli'
+            'jmp = login_jumper.cli:main',
         ]
     },
-    scripts=['bin/server_gate.py'],
     platforms="any",
     install_requires=['pycrypto', 'paramiko', 'pexpect', 'sentry-sdk', 'rollbar', 'redis'],
     python_requires='>=2.7',
