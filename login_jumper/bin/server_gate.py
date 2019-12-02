@@ -2,7 +2,6 @@
 # coding=utf-8
 # author: sunnywalden@gmail.com
 
-import argparse
 import json
 import os
 import sys
