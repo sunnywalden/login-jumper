@@ -240,53 +240,12 @@ def str_to_dicts(trans_child, server_info_list):
             ssh_str = 'ssh'
             common_split = ":"
             name_split = '('
-            # try:
-            #     ssh_index = server_list.index(ssh_str)
-            # except ValueError:
-            #     logger.error("No server matched")
-            #     print('No server matched')
-            #     trans_child.sendline('exit')
-            # try:
-            #     server_dict["id"] = server_list[0].split(":")[0]
-            #     server_dict["name"] = server_list[1].split('(')[0]
-            #     server_dict["host"] = server_list[ssh_index - 1].split(":")[0]
-            #     server_dict["port"] = server_list[ssh_index - 1].split(":")[1]
-            #     server_dict["user"] = server_list[ssh_index + 1]
-            # except Exception as e:
-            #     capture_exception(e)
-            #     rollbar.report_exc_info()
-            #     logger.error("Exception while get server info: %s " % e)
-            # else:
-            #     # 存储到redis
-            #     store_redis(server_dict)
-            #
-            #     servers_dict_list.append(server_dict)
-            #     logger.info("Server host info: %s" % server_dict)
-            #     break
-
         else:
             ssh_str = 'ssh'.encode('utf-8')
-
-            ssh_index = server_list.index(ssh_str)
             common_split = b":"
             name_split = b'('
-            # try:
-            #     server_dict["id"] = server_list[0].split(b":")[0]
-            #     server_dict["name"] = server_list[1].split(b'(')[0]
-            #     server_dict["host"] = server_list[ssh_index - 1].split(b":")[0]
-            #     server_dict["port"] = server_list[ssh_index - 1].split(b":")[1]
-            #     server_dict["user"] = server_list[ssh_index + 1]
-            # except Exception as e:
-            #     capture_exception(e)
-            #     rollbar.report_exc_info()
-            #     logger.error("Exception while get server info: %s " % e)
-            # else:
-            #     # 存储到redis
-            #     store_redis(server_dict)
-            #
-            #     servers_dict_list.append(server_dict)
-            #     logger.info("Server host info: %s" % server_dict)
-            #     break
+
+        ssh_index = server_list.index(ssh_str)
         try:
             server_dict["id"] = server_list[0].split(common_split)[0]
             server_dict["name"] = server_list[1].split(name_split)[0]
