@@ -7,8 +7,6 @@
 
 ## 部署
 
-### 下载项目代码
-
 #### 部署依赖
 
 无pip环境的，请先部署pip（参考命令：sudo easy_install pip）。
@@ -35,7 +33,23 @@ virtualenv --no-site-packages env
 
 source env/bin/activate
 
-3.安装 
+### 部署方式 
+
+部署方式，可选择pip安装或下载版本源码。
+
+### pip安装
+
+注：请替换'~/Documents/jump-server/'为安装路径
+
+---
+
+pip install login-jumper --root ~/Documents/jump-server/ --prefix ./
+
+---
+
+### 直接下载源码
+
+#### 下载项目发布版本
 
 下载release版本，解压
 
@@ -48,8 +62,41 @@ sudo pip install -r requirements.txt
 ---
 
 
+## 配置
 
-### 使用
+进入安装路径下的conf目录，修改redis配置
+
+---
+
+[single]
+host = 127.0.0.1
+port = 6379
+database = 2
+password = 123456
+
+---
+
+修改堡垒机配置
+
+---
+
+[Server]
+# 堡垒机IP
+jumper_host = 192.168.1.100
+# 堡垒机ssh端口
+jumper_port = 22
+
+[Session]
+# 会话超时时长
+alive_interval = 20000000000
+
+[System]
+# .bash_profile路径
+system_profile = ~/.bash_profile
+
+---
+
+## 使用
 
 #### 进入路径bin
 
@@ -61,9 +108,16 @@ sudo pip install -r requirements.txt
     source env/bin/activate
     
     cd bin/
+    
+    export JUMPER_PATH=`pwd`
+    
+    ln -s server_gate.py /usr/local/bin/jumper
+    
+    export PATH=$JUMPER_PATH:/usr/local/bin:$PATH
 
-
-    python server_gate.py -H env3
+    alias jumper='python server_gate.py'
+    
+    jumper -H env3
 
 ---
 
