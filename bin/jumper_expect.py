@@ -58,23 +58,19 @@ def filter_output(s):
     output_buf = output_buf[-output_buf_size:]
     server = search_str[1:]
     if login_prompt.search(output_buf):
-        # if server_match_result:
-            if user_prompt.search(output_buf) and not login_status:
-                logger.info("Login server %s success!" % server)
-                login_user = 1
-                login_status = True
-            if root_str in output_buf:
-                if login_user < 2 and not server_exit:
-                    logger.info("Login server as root!")
-                    login_user = 2
-                    root_user = True
-                if jumper_str in output_buf and not server_exit:
-                    logger.info("Exit from server success!")
-                    server_exit = True
-                    child.sendline("ls")
-        # else:
-        #     logger.error("No server matched found")
-        #     child.sendline(':q')
+        if user_prompt.search(output_buf) and not login_status:
+            logger.info("Login server %s success!" % server)
+            login_user = 1
+            login_status = True
+        if root_str in output_buf:
+            if login_user < 2 and not server_exit:
+                logger.info("Login server as root!")
+                login_user = 2
+                root_user = True
+            if jumper_str in output_buf and not server_exit:
+                logger.info("Exit from server success!")
+                server_exit = True
+                child.sendline("ls")
 
     return s
 
@@ -170,21 +166,38 @@ def jumper_login():
     return child
 
 
-def search_server(host):
+def search_server(host=None):
     global child
 
-    host_search_str = search_string(host)
-    server = host_search_str[1:]
-    host_search_str = '\d+ .+' + server + '.+' + '\r\n'
     server_info_list = []
+    server = None
 
-    child.sendline('ls')
-    host_search_str = host_search_str.encode(encoding='utf-8')
-    searcher_prompt = re.compile(host_search_str)
-    index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
+    if host:
+        host_search_str = search_string(host)
+        server = host_search_str[1:]
+        host_search_str = '\d+ .+' + server + '.+' + '\r\n'
 
-    if index_server <= 0:
-        logger.info("Search host %s success!" % server)
+        host_search_str = host_search_str.encode(encoding='utf-8')
+        searcher_prompt = re.compile(host_search_str)
+
+    if host:
+        child.sendline('ls')
+        index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
+    else:
+        child.sendline('ls')
+        index_server = child.expect([searcher_prompt, pexpect.EOF, pexpect.TIMEOUT])
+        server_infos = child.after
+        if server_infos:
+            if version < (3, 0):
+                split_str = '[K'
+
+            else:
+                split_str = b'[K'
+            server_info_list = server_infos.split(split_str)
+
+    if host and index_server <= 0:
+        if host:
+            logger.info("Search host %s success!" % server)
         res = child.after
         server_infos = res
         logger.debug("Debug servers hosts: %s" % server_infos)
@@ -198,10 +211,10 @@ def search_server(host):
 
         logger.debug("Debug servers list:%s" % server_info_list)
 
-        if not version < (3, 0):
+        if not version < (3, 0) and server:
             server = server.encode('utf-8')
 
-    elif index_server == 2:
+    elif host and index_server == 2:
         child_timeout(child)
     else:
         logger.debug("Debug console info: %s" % child.before)
@@ -209,8 +222,7 @@ def search_server(host):
     return server_info_list, server
 
 
-def query_servers(host):
-
+def query_servers(host=None):
     jumper_login()
 
     server_info_list, server_regex = search_server(host)
