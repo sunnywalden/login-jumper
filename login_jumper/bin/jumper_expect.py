@@ -244,8 +244,11 @@ def str_to_dicts(trans_child, server_info_list):
             ssh_str = 'ssh'.encode('utf-8')
             common_split = b":"
             name_split = b'('
-
-        ssh_index = server_list.index(ssh_str)
+        try:
+            ssh_index = server_list.index(ssh_str)
+        except ValueError:
+            logger.error('No host matched!')
+            trans_child.sendline('exit')
         try:
             server_dict["id"] = server_list[0].split(common_split)[0]
             server_dict["name"] = server_list[1].split(name_split)[0]
