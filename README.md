@@ -71,10 +71,15 @@ sudo pip install -r requirements.txt
 
 ---
 
+
 [single]
+
 host = 127.0.0.1
+
 port = 6379
+
 database = 2
+
 password = REDACTED
 
 ---
@@ -83,18 +88,29 @@ password = REDACTED
 
 ---
 
+
 [Server]
+
 # 堡垒机IP
+
 jumper_host = 127.0.0.1
+
 # 堡垒机ssh端口
+
 jumper_port = 22
 
+
 [Session]
+
 # 会话超时时长
+
 alive_interval = 20000000000
 
+
 [System]
+
 # .bash_profile路径
+
 system_profile = ~/.bash_profile
 
 ---
