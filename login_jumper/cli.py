@@ -12,7 +12,7 @@ sys.path.append(BASE_DIR)
 from login_jumper.bin.server_gate import JumperServer
 from login_jumper.utils.get_logger import logger_generate
 
-VERSION = '1.5.7b2'
+VERSION = '2.1.3'
 
 logger = logger_generate()
 
