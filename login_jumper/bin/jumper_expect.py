@@ -160,7 +160,7 @@ def jumper_login():
 
     command = 'ssh -o StrictHostKeyChecking=no %(user)s@%(host)s -p %(port)s' \
               % {"user": username, "host": host, "port": str(port)}
-    child = pexpect.spawn(command, maxread=1024 * 1024 * 1024, timeout=30)
+    child = pexpect.spawn(command, maxread=1024 * 1024 * 1024, timeout=5)
     child.setwinsize(*get_terminal_size())
     signal.signal(signal.SIGWINCH, sigwinch_pass_through)
     logger.info('########################################')
