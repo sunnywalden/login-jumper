@@ -5,7 +5,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c735378085b404caf09a441238ad034)](https://www.codacy.com/manual/sunnywalden/login-jumper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sunnywalden/login-jumper&amp;utm_campaign=Badge_Grade)
 [![Build Status](https://travis-ci.org/sunnywalden/login-jumper.svg?branch=master)](https://travis-ci.org/sunnywalden/login-jumper)
 
-## 使用
 
 
 ## 部署
@@ -91,25 +90,25 @@ password = 123456
 
 [Server]
 
-# 堡垒机IP
+########## 堡垒机IP
 
 jumper_host = 192.168.1.100
 
-# 堡垒机ssh端口
+########## 堡垒机ssh端口
 
 jumper_port = 22
 
 
 [Session]
 
-# 会话超时时长
+########## 会话超时时长
 
 alive_interval = 20000000000
 
 
 [System]
 
-# .bash_profile路径
+########## .bash_profile路径
 
 system_profile = ~/.bash_profile
 
