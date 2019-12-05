@@ -10,7 +10,7 @@
 
 ## 部署
 
-#### 部署依赖
+### 部署依赖
 
 无pip环境的，请先部署pip（参考命令：sudo easy_install pip）。
 
@@ -38,9 +38,9 @@ source env/bin/activate
 
 ### 部署方式 
 
-部署方式，可选择pip安装或下载版本源码。
+二种部署方式，可选择pip安装或下载版本源码。
 
-### pip安装(推荐)
+#### pip安装(推荐)
 
 注：请替换'~/Documents/jump-server/'为安装路径
 
@@ -50,9 +50,9 @@ pip install login-jumper==2.1.5
 
 ---
 
-### 直接下载源码
+#### 直接下载源码
 
-#### 下载项目发布版本
+##### 下载项目发布版本
 
 下载release版本，解压
 
@@ -67,7 +67,7 @@ sudo pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 配置
 
-进入安装路径下的conf目录，修改redis配置
+配置redis,修改安装路径login_jumper/conf目录的redis.ini文件
 
 ---
 
@@ -84,7 +84,7 @@ password = 123456
 
 ---
 
-修改堡垒机配置
+修改堡垒机配置，修改安装路径login_jumper/conf目录的conf.ini文件
 
 ---
 
@@ -117,9 +117,8 @@ system_profile = ~/.bash_profile
 
 ## 使用
 
-#### 进入路径bin
 
-#### 指定主机参数，运行主程序
+### 指定主机参数，运行主程序
 
 请通过-H参数指定需要登录的主机，支持主机名称或IP地址（查询需登录主机的主机名称或IP地址可登录堡垒机，执行jmp -a query）。如需要登录env3主机：
 
@@ -131,7 +130,7 @@ system_profile = ~/.bash_profile
 ---
 
 
-### 注意事项
+## 注意事项
 
 请在堡垒机设置中开启""Usmshell使用命令行方式"
 
