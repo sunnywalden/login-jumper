@@ -50,7 +50,7 @@ class JumperServer:
             self.logger.info('########################################')
             if len(servers_list) > 3:
                 str_to_dicts(servers_list[2:-1])
-                print('\r\n'.join(servers_list[2:-1]))
+                print('\r\n'.join(child, servers_list[2:-1]))
             else:
                 str_to_dicts(child, servers_list[:-1])
                 print(servers_list)
