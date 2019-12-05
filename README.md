@@ -40,7 +40,7 @@ source env/bin/activate
 
 部署方式，可选择pip安装或下载版本源码。
 
-### pip安装
+### pip安装(推荐)
 
 注：请替换'~/Documents/jump-server/'为安装路径
 
