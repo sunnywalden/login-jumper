@@ -46,7 +46,7 @@ source env/bin/activate
 
 ---
 
-pip install login-jumper==2.1.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install login-jumper==2.1.4
 
 ---
 

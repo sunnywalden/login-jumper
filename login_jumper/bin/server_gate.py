@@ -49,7 +49,7 @@ class JumperServer:
             self.logger.debug('Debug servers {}'.format(servers_list))
             self.logger.info('########################################')
             if len(servers_list) > 3:
-                str_to_dicts(servers_list[2:-1])
+                str_to_dicts(child, servers_list[2:-1])
                 print('\r\n'.join(servers_list[2:-1]))
             else:
                 str_to_dicts(child, servers_list[:-1])
