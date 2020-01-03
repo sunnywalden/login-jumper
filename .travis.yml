@@ -7,6 +7,9 @@ language: python
 # Set the python version to 2.7
 python: 3.7.5
 
+git:
+  depth: 3
+
 #services:
 #  - mysql
 env:
@@ -14,6 +17,16 @@ env:
     - jumper_host=$jumper_host
     - jumper_port=$jumper_port
     - sentry_id=$sentry_id
+
+before_install:
+  - mkdir -p ~/.pip/
+
+  - echo "[global]" > ~/.pip/pip.conf
+
+  - echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
+
+  - pip install --upgrade pip
+  
 # Install the codecov pip dependency
 install:
   - pip install codecov coverage
