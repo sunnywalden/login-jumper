@@ -12,6 +12,7 @@ jobs:
             pip install coverage
             pip install -r requirements.txt
             pip install codecov
+            python -m unittest discover -s tests -v
             coverage run tests.py
       - run:
           name: get test coverage
