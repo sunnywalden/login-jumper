@@ -13,12 +13,22 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/sunnywalden/login-jumper",
     packages=setuptools.find_packages(),
-    package_data={'': ['config.ini', 'redis.ini']},
+    package_data={'': [
+        'config.ini',
+        'redis.ini',
+        'config.ini.example',
+        'redis.ini.example',
+    ]},
     include_package_data=True,
     data_files=[
         (
             'login_jumper/conf/',
-            ['login_jumper/conf/config.ini', 'login_jumper/conf/redis.ini']),
+            [
+                'login_jumper/conf/config.ini',
+                'login_jumper/conf/redis.ini',
+                'login_jumper/conf/config.ini.example',
+                'login_jumper/conf/redis.ini.example',
+            ]),
         (
             'logs/.gitfile',
             ['login_jumper/logs/.gitfile']

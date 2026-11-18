@@ -66,10 +66,17 @@ sudo pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 配置
 
-配置redis,修改安装路径login_jumper/conf目录的redis.ini文件
+安装目录 `login_jumper/conf/` 里的 `redis.ini` 和 `config.ini` 只保留本机回环示例，口令留空。不要把真实地址或口令写进这两个会被提交的文件。需要本机私有配置时，把同目录的 `*.ini.example` 复制为 `redis.local.ini` 或 `config.local.ini`（已在 `.gitignore` 中忽略）。
+
+环境变量优先于 `*.local.ini`，`*.local.ini` 再优先于示例文件。推荐使用带前缀的变量：
+
+- `LOGIN_JUMPER_SINGLE_HOST`、`LOGIN_JUMPER_SINGLE_PORT`、`LOGIN_JUMPER_SINGLE_DATABASE`、`LOGIN_JUMPER_SINGLE_PASSWORD`
+- `LOGIN_JUMPER_CLUSTER_PASSWORD`
+- `LOGIN_JUMPER_SERVER_JUMPER_HOST`、`LOGIN_JUMPER_SERVER_JUMPER_PORT`
+
+仍兼容原有变量名：`host`、`port`、`database`、`password`、`jumper_host`、`jumper_port`、`sentry_id`、`roll_bar`。口令留空时不会向 Redis 发送 AUTH。
 
 ---
-
 
 [single]
 
@@ -79,18 +86,17 @@ port = 6379
 
 database = 2
 
-password = REDACTED
+password =
 
 ---
 
-修改堡垒机配置，修改安装路径login_jumper/conf目录的conf.ini文件
+堡垒机示例默认只指向本机。使用前用环境变量或 `config.local.ini` 改成你自己的地址。
 
 ---
-
 
 [Server]
 
-########## 堡垒机IP
+########## 堡垒机地址
 
 jumper_host = 127.0.0.1
 
