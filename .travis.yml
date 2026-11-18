@@ -41,6 +41,7 @@ install:
 #  - mysql -e "CREATE DATABASE test CHARSET UTF8;"
 # Run the unit test
 script:
+  - python -m unittest discover -s tests -v
   - coverage run tests.py
 
 # Push the results back to codecov

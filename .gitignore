@@ -5,6 +5,10 @@ build
 .idea/
 login_jumper/conf/config_*.ini
 login_jumper/conf/redis_*.ini
+# 本地覆盖，可含真实地址和口令，禁止提交
+login_jumper/conf/*.local.ini
+.env
+.env.*
 *.pyc
 */*.pyc
 !.gitfile
